@@ -388,6 +388,15 @@ function renderResult() {
   leadCard.style.display = "none";
   quizCard.style.display = "none";
   resultCard.style.display = "block";
+    // gráfico visual (donut)
+  const rankedForChart = getRankedAreaKeys();
+  const topN = rankedForChart.slice(0, 5);
+
+  const chartLabels = topN.map(k => areaLabels[k] || k);
+  const chartValues = topN.map(k => points[k]);
+
+  drawDonutChart("areaChart", chartLabels, chartValues);
+
 }
 
 function openLeadGate() {

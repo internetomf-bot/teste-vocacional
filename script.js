@@ -354,15 +354,26 @@ function isValidEmail(v) {
 }
 
 // IMPORTANT: no-cors + sem headers => não dá “Failed to fetch”
-async function sendLeadToSheets(payload) {
-  // no-cors: o navegador não deixa ler a resposta do Apps Script,
-  // mas o POST chega e grava na planilha.
-  await fetch(SHEETS_WEBAPP_URL, {
+function sendLeadToSheets(payload) {
+  const body = JSON.stringify(payload);
+
+  // 1) Tenta o jeito mais “certo” pra web (não gera preflight e não depende de CORS)
+  try {
+    if (navigator.sendBeacon) {
+      const ok = navigator.sendBeacon(
+        SHEETS_WEBAPP_URL,
+        new Blob([body], { type: "text/plain;charset=utf-8" })
+      );
+      if (ok) return Promise.resolve(true);
+    }
+  } catch (e) {}
+
+  // 2) Fallback: fetch sem headers JSON (sem preflight) e sem ler resposta (CORS)
+  return fetch(SHEETS_WEBAPP_URL, {
     method: "POST",
     mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload),
-  });
+    body
+  }).then(() => true);
 }
 
 // ===== EVENTOS =====

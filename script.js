@@ -354,10 +354,13 @@ function isValidEmail(v) {
 }
 
 // IMPORTANT: no-cors + sem headers => não dá “Failed to fetch”
-function sendLeadToSheetsNoCors(payload) {
-  return fetch(SHEETS_WEBAPP_URL, {
+async function sendLeadToSheets(payload) {
+  // no-cors: o navegador não deixa ler a resposta do Apps Script,
+  // mas o POST chega e grava na planilha.
+  await fetch(SHEETS_WEBAPP_URL, {
     method: "POST",
     mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(payload),
   });
 }

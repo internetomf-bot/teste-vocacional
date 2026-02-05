@@ -288,12 +288,15 @@ function sendLeadToSheets(payload) {
     }
   } catch (_) {}
 
-  return fetch(SHEETS_WEBAPP_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body
-  }).then(() => true);
-}
+  fetch(SHEETS_WEBAPP_URL, {
+  method: "POST",
+  mode: "no-cors",
+  body: JSON.stringify(payload)
+});
+
+// NÃO espere resposta
+renderResult();
+
 function drawDonutChart(canvasId, labels, values) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;

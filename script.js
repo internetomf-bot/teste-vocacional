@@ -294,6 +294,59 @@ function sendLeadToSheets(payload) {
     body
   }).then(() => true);
 }
+function drawDonutChart(canvasId, labels, values) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+
+  // limpa
+  ctx.clearRect(0, 0, w, h);
+
+  const total = values.reduce((a, b) => a + b, 0);
+  if (!total) return;
+
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = Math.min(w, h) * 0.42;
+  const innerR = r * 0.62;
+
+  // cores simples e fixas (sem depender de libs)
+  const palette = ["#2d74ff","#27c2a2","#ffb020","#ff5c8a","#9b6bff","#00b3ff","#7ddc5a"];
+
+  let start = -Math.PI / 2;
+
+  values.forEach((val, i) => {
+    const ang = (val / total) * Math.PI * 2;
+    const end = start + ang;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = palette[i % palette.length];
+    ctx.fill();
+
+    start = end;
+  });
+
+  // furo do donut
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+  ctx.fillStyle = "#121a24";
+  ctx.fill();
+
+  // texto central
+  ctx.fillStyle = "#e8eef6";
+  ctx.font = "600 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("Perfil", cx, cy - 8);
+  ctx.font = "700 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillText("do teste", cx, cy + 10);
+}
 
 function renderResult() {
   const ranked = getRankedAreaKeys();

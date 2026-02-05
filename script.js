@@ -428,7 +428,65 @@ function isValidEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
-leadSubmitBtn.onclick = async () => {
+leadSubmitBtn.onclick = () => {
+  leadError.textContent = "";
+  leadSubmitBtn.disabled = true;
+
+  const name = String(leadName.value || "").trim();
+  const whats = normalizeDigits(leadWhats.value);
+  const email = String(leadEmail.value || "").trim();
+
+  if (!name) {
+    leadError.textContent = "Informe seu nome.";
+    leadSubmitBtn.disabled = false;
+    return;
+  }
+  if (whats.length < 10) {
+    leadError.textContent = "Informe seu WhatsApp com DDD (somente números).";
+    leadSubmitBtn.disabled = false;
+    return;
+  }
+  if (!email || !email.includes("@")) {
+    leadError.textContent = "Informe um e-mail válido.";
+    leadSubmitBtn.disabled = false;
+    return;
+  }
+
+  const snap = buildResultSnapshot();
+
+  const payload = {
+    createdAt: new Date().toISOString(),
+    name,
+    whatsapp: whats,
+    email,
+    topArea: snap.topArea,
+    secondArea: snap.secondArea,
+    thirdArea: snap.thirdArea,
+    scores: snap.scores,
+    userAgent: navigator.userAgent || "",
+    pageUrl: location.href || "",
+  };
+
+  // ENVIO SEM ESPERAR RESPOSTA (para NÃO dar erro no navegador)
+  try {
+    fetch(SHEETS_WEBAPP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    // não mostra erro para o usuário (senão volta o problema)
+  }
+
+  // limpa e mostra o resultado SEM depender do Apps Script
+  leadName.value = "";
+  leadWhats.value = "";
+  leadEmail.value = "";
+  leadError.textContent = "";
+
+  renderResult();
+};
+
   leadError.textContent = "";
   leadSubmitBtn.disabled = true;
 

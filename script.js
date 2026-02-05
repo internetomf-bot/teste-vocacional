@@ -1,7 +1,8 @@
-// ========= CONFIG =========
-const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby9E-kBMtv1ozeP5AwuE_BKupfZyJ17xWidRXQx7uL0idfQ0xK_So97WL6PDS8ENcQP/exec";
+// ===== CONFIG =====
+const SHEETS_WEBAPP_URL =
+  "https://script.google.com/macros/s/AKfycby9E-kBMtv1ozeP5AwuE_BKupfZyJ17xWidRXQx7uL0idfQ0xK_So97WL6PDS8ENcQP/exec";
 
-// ========= ÁREAS =========
+// ===== ÁREAS =====
 const AREAS = [
   "TecnologiaExatas",
   "Saude",
@@ -32,7 +33,7 @@ const areaDescriptions = {
   Engenharia: "Perfil técnico aplicado a projetos, produção, construção e infraestrutura.",
 };
 
-// ========= CURSOS (mantidos como estavam no modelo B) =========
+// ===== CURSOS POR ÁREA (mantive a mesma ideia do seu projeto) =====
 const coursesByArea = {
   TecnologiaExatas: [
     "Análise e Desenvolvimento de Sistemas",
@@ -110,7 +111,7 @@ const coursesByArea = {
   Engenharia: [],
 };
 
-// ========= PERGUNTAS (10) =========
+// ===== PERGUNTAS (10) =====
 const questions = [
   {
     text: "Quando você precisa resolver um problema, o que você faz primeiro?",
@@ -204,14 +205,14 @@ const questions = [
   },
 ];
 
-// ========= ESTADO =========
+// ===== STATE =====
 let idx = 0;
-let selectedIndex = null;
+let selectedIdx = null;
 
 let points = Object.fromEntries(AREAS.map(a => [a, 0]));
 let primaryHits = Object.fromEntries(AREAS.map(a => [a, 0]));
 
-// ========= UI =========
+// ===== UI (IDs precisam existir no seu index.html atual) =====
 const qText = document.getElementById("qText");
 const optionsEl = document.getElementById("options");
 const nextBtn = document.getElementById("nextBtn");
@@ -226,13 +227,13 @@ const resultCard = document.getElementById("resultCard");
 
 const leadName = document.getElementById("leadName");
 const leadWhats = document.getElementById("leadWhats");
-const leadEmail = document.getElementById("leadEmail");
+const leadEmail = document.getElementById("leadEmail"); // <-- campo de e-mail no seu HTML
 const leadError = document.getElementById("leadError");
 const leadSubmitBtn = document.getElementById("leadSubmitBtn");
 
-// ========= FUNÇÕES =========
+// ===== FUNÇÕES =====
 function renderQuestion() {
-  selectedIndex = null;
+  selectedIdx = null;
   nextBtn.disabled = true;
 
   const q = questions[idx];
@@ -246,7 +247,7 @@ function renderQuestion() {
     div.textContent = opt.label;
 
     div.onclick = () => {
-      selectedIndex = i;
+      selectedIdx = i;
       nextBtn.disabled = false;
       [...optionsEl.children].forEach(c => c.style.outline = "none");
       div.style.outline = "2px solid #2d74ff";
@@ -268,11 +269,22 @@ function applyScore(opt) {
 }
 
 function getRankedAreaKeys() {
-  return [...AREAS].sort((a,b) => {
+  return [...AREAS].sort((a, b) => {
     if (points[b] !== points[a]) return points[b] - points[a];
     if (primaryHits[b] !== primaryHits[a]) return primaryHits[b] - primaryHits[a];
     return AREAS.indexOf(a) - AREAS.indexOf(b);
   });
+}
+
+function buildResultSnapshot() {
+  const ranked = getRankedAreaKeys();
+  return {
+    topArea: areaLabels[ranked[0]] || ranked[0],
+    secondArea: areaLabels[ranked[1]] || ranked[1],
+    thirdArea: areaLabels[ranked[2]] || ranked[2],
+    scores: Object.fromEntries(ranked.map(k => [areaLabels[k] || k, points[k]])),
+    rankedKeys: ranked
+  };
 }
 
 function openLeadGate() {
@@ -283,108 +295,6 @@ function openLeadGate() {
   leadSubmitBtn.disabled = false;
 }
 
-function buildResultSnapshot() {
-  const ranked = getRankedAreaKeys();
-  return {
-    topKey: ranked[0],
-    topArea: areaLabels[ranked[0]] || ranked[0],
-    secondArea: areaLabels[ranked[1]] || ranked[1],
-    thirdArea: areaLabels[ranked[2]] || ranked[2],
-    scores: Object.fromEntries(ranked.map(k => [areaLabels[k] || k, points[k]])),
-    rankedKeys: ranked
-  };
-}
-
-async function sendLeadToSheets(payload) {
-  const res = await fetch(SHEETS_WEBAPP_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!data || data.ok !== true) throw new Error(data?.error || "Falha ao salvar no Google Sheets.");
-}
-
-function renderDonut(pointsByKey, rankedKeys) {
-  const canvas = document.getElementById("donut");
-  const legend = document.getElementById("legend");
-  if (!canvas || !legend) return;
-
-  // Paleta simples (fixa por área)
-  const colors = {
-    TecnologiaExatas: "#2d74ff",
-    Saude: "#00c2a8",
-    Educacao: "#ffb020",
-    Gestao: "#9b59ff",
-    Comunicacao: "#ff4d8d",
-    Seguranca: "#ff6b4a",
-    Engenharia: "#6bd3ff",
-  };
-
-  const ctx = canvas.getContext("2d");
-  const w = canvas.width, h = canvas.height;
-
-  // limpa
-  ctx.clearRect(0, 0, w, h);
-
-  const keys = rankedKeys.filter(k => (pointsByKey[k] || 0) > 0);
-  const total = keys.reduce((s, k) => s + (pointsByKey[k] || 0), 0) || 1;
-
-  const cx = Math.floor(w * 0.33);
-  const cy = Math.floor(h * 0.55);
-  const rOuter = Math.min(w, h) * 0.38;
-  const rInner = rOuter * 0.58;
-
-  let start = -Math.PI / 2;
-
-  keys.forEach(k => {
-    const val = pointsByKey[k] || 0;
-    const ang = (val / total) * Math.PI * 2;
-
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, rOuter, start, start + ang);
-    ctx.closePath();
-    ctx.fillStyle = colors[k] || "#888";
-    ctx.fill();
-
-    start += ang;
-  });
-
-  // furo
-  ctx.beginPath();
-  ctx.arc(cx, cy, rInner, 0, Math.PI * 2);
-  ctx.fillStyle = "#121a24";
-  ctx.fill();
-
-  // texto centro (sem pontuação)
-  ctx.fillStyle = "#e8eef6";
-  ctx.font = "700 14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("Seu perfil", cx, cy - 2);
-  ctx.fillStyle = "#a9b6c6";
-  ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-  ctx.fillText("por áreas", cx, cy + 16);
-
-  // legenda (sem números)
-  legend.innerHTML = "";
-  rankedKeys.forEach(k => {
-    if ((pointsByKey[k] || 0) <= 0) return;
-    const row = document.createElement("div");
-    row.className = "lg-item";
-    const sw = document.createElement("span");
-    sw.className = "swatch";
-    sw.style.background = colors[k] || "#888";
-    const txt = document.createElement("div");
-    txt.className = "muted";
-    txt.textContent = areaLabels[k] || k;
-    row.appendChild(sw);
-    row.appendChild(txt);
-    legend.appendChild(row);
-  });
-}
-
 function renderResult() {
   const ranked = getRankedAreaKeys();
   const top = ranked[0];
@@ -393,15 +303,22 @@ function renderResult() {
   const recommended = all.slice(0, Math.min(5, Math.max(3, all.length)));
 
   document.getElementById("resultMeta").textContent =
-    "Recomendação baseada nas suas respostas. (Sem exibir pontuação.)";
+    "Pontuação calculada por área (desempate: mais respostas como +2).";
 
   document.getElementById("topAreaName").textContent = areaLabels[top] || top;
   document.getElementById("topAreaDesc").textContent = areaDescriptions[top] || "";
 
-  // donut
-  renderDonut(points, ranked);
+  // Se você já trocou por gráfico no HTML, pode remover essa lista depois.
+  const scoreList = document.getElementById("scoreList");
+  if (scoreList) {
+    scoreList.innerHTML = "";
+    ranked.forEach(a => {
+      const li = document.createElement("li");
+      li.textContent = `${areaLabels[a] || a}: ${points[a]} ( +2: ${primaryHits[a]} )`;
+      scoreList.appendChild(li);
+    });
+  }
 
-  // listas cursos
   const recommendedList = document.getElementById("recommendedList");
   recommendedList.innerHTML = "";
   recommended.forEach(c => {
@@ -427,10 +344,28 @@ function finishQuiz() {
   openLeadGate();
 }
 
-// ========= EVENTOS =========
+function normalizeDigits(v) {
+  return String(v || "").replace(/\D/g, "");
+}
+
+function isValidEmail(v) {
+  const s = String(v || "").trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+
+// IMPORTANT: no-cors + sem headers => não dá “Failed to fetch”
+function sendLeadToSheetsNoCors(payload) {
+  return fetch(SHEETS_WEBAPP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(payload),
+  });
+}
+
+// ===== EVENTOS =====
 nextBtn.onclick = () => {
   const q = questions[idx];
-  const opt = q.options[selectedIndex];
+  const opt = q.options[selectedIdx];
   applyScore(opt);
 
   idx += 1;
@@ -438,23 +373,13 @@ nextBtn.onclick = () => {
   else renderQuestion();
 };
 
-function normalizeDigits(v) {
-  return String(v || "").replace(/\D/g, "");
-}
-
-function isValidEmail(email) {
-  const e = String(email || "").trim();
-  // validação simples (boa o suficiente para lead)
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
-}
-
 leadSubmitBtn.onclick = async () => {
   leadError.textContent = "";
   leadSubmitBtn.disabled = true;
 
   const name = String(leadName.value || "").trim();
   const whats = normalizeDigits(leadWhats.value);
-  const email = String(leadEmail.value || "").trim();
+  const email = String(leadEmail?.value || "").trim();
 
   if (!name) {
     leadError.textContent = "Informe seu nome.";
@@ -488,25 +413,26 @@ leadSubmitBtn.onclick = async () => {
   };
 
   try {
-    await sendLeadToSheets(payload);
+    await sendLeadToSheetsNoCors(payload);
 
     // limpa formulário
     leadName.value = "";
     leadWhats.value = "";
-    leadEmail.value = "";
+    if (leadEmail) leadEmail.value = "";
     leadError.textContent = "";
 
     // mostra resultado
     renderResult();
   } catch (e) {
-    leadError.textContent = String(e?.message || e);
+    // aqui só cai se der erro “de rede” mesmo
+    leadError.textContent = "Não consegui enviar agora. Tente novamente.";
     leadSubmitBtn.disabled = false;
   }
 };
 
 function reset() {
   idx = 0;
-  selectedIndex = null;
+  selectedIdx = null;
   points = Object.fromEntries(AREAS.map(a => [a, 0]));
   primaryHits = Object.fromEntries(AREAS.map(a => [a, 0]));
 
@@ -516,7 +442,7 @@ function reset() {
 
   leadName.value = "";
   leadWhats.value = "";
-  leadEmail.value = "";
+  if (leadEmail) leadEmail.value = "";
   leadError.textContent = "";
   leadSubmitBtn.disabled = false;
 

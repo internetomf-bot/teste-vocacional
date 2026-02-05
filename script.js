@@ -487,3 +487,41 @@ restartBtn2.onclick = reset;
 
 // init
 renderQuestion();
+function drawDonutChart(canvasId, labels, values) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  const total = values.reduce((a, b) => a + b, 0);
+
+  let startAngle = -0.5 * Math.PI;
+
+  const colors = [
+    "#2d74ff",
+    "#5ad7ff",
+    "#9b8cff",
+    "#4ade80",
+    "#facc15",
+  ];
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  values.forEach((value, i) => {
+    const sliceAngle = (value / total) * 2 * Math.PI;
+
+    ctx.beginPath();
+    ctx.moveTo(130, 130);
+    ctx.arc(130, 130, 120, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+
+    startAngle += sliceAngle;
+  });
+
+  // furo do donut
+  ctx.beginPath();
+  ctx.arc(130, 130, 60, 0, 2 * Math.PI);
+  ctx.fillStyle = "#0b1220";
+  ctx.fill();
+}

@@ -1,8 +1,6 @@
-// ===== CONFIG =====
-const SHEETS_WEBAPP_URL =
-  "https://script.google.com/macros/s/AKfycbxanP6vQqk8TLNIfUmTVV9jGEl-BWGzpmmTQUtJuePwMBq5W5-MeAuAr9vKjNJqJVtoIQ/exec";
+const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby9E-kBMtv1ozeP5AwuE_BKupfZyJ17xWidRXQx7uL0idfQ0xK_So97WL6PDS8ENcQP/exec";
 
-// ===== ÁREAS =====
+// Áreas (IDs)
 const AREAS = [
   "TecnologiaExatas",
   "Saude",
@@ -10,9 +8,10 @@ const AREAS = [
   "Gestao",
   "Comunicacao",
   "Seguranca",
-  "Engenharia"
+  "Engenharia",
 ];
 
+// Labels
 const areaLabels = {
   TecnologiaExatas: "Tecnologia & Exatas",
   Saude: "Saúde",
@@ -23,17 +22,18 @@ const areaLabels = {
   Engenharia: "Engenharia & Arquitetura",
 };
 
+// Descrições
 const areaDescriptions = {
   TecnologiaExatas: "Perfil analítico, lógica, sistemas, dados e tecnologia.",
   Saude: "Vocação para cuidado, bem-estar, atuação comunitária e áreas afins.",
-  Educacao: "Interesse em ensinar, formar pessoas e atuar com educação.",
+  Educacao: "Interesse em ensinar, formar pessoas, educação, inclusão e desenvolvimento humano.",
   Gestao: "Foco em negócios, organização, processos, liderança e resultados.",
   Comunicacao: "Criatividade, comunicação, design, mídia e produção de conteúdo.",
   Seguranca: "Interesse por segurança, perícia, normas e atuação na área pública/privada.",
   Engenharia: "Perfil técnico aplicado a projetos, produção, construção e infraestrutura.",
 };
 
-// ===== CURSOS POR ÁREA (mantive a mesma ideia do seu projeto) =====
+// Cursos por área (ajuste livre)
 const coursesByArea = {
   TecnologiaExatas: [
     "Análise e Desenvolvimento de Sistemas",
@@ -66,37 +66,24 @@ const coursesByArea = {
     "Ciências Biológicas (Licenciatura)",
     "Ciências Biológicas (Bacharelado)",
     "Biblioteconomia",
+    "Psicopedagogia",
   ],
   Gestao: [
     "Administração",
-    "Administração - Segunda Graduação",
     "Ciências Contábeis",
-    "Ciências Contábeis - Segunda Graduação",
     "Ciências Econômicas",
     "Comércio Exterior",
     "Logística",
     "Marketing",
     "Negócios Imobiliários",
     "Processos Gerenciais",
-    "Secretariado",
-    "Hotelaria",
-    "Gastronomia",
-    "Gestão Comercial",
-    "Gestão da Qualidade",
-    "Gestão de Produção Industrial",
-    "Gestão de Recursos Humanos",
-    "Gestão do Agronegócio",
     "Gestão Financeira",
-    "Gestão Hospitalar",
     "Gestão Pública",
-    "Gestão Ambiental",
   ],
   Comunicacao: [
     "Produção Publicitária",
     "Publicidade e Propaganda",
     "Jornalismo",
-    "Design de Produto",
-    "Design de Interiores",
     "Design de Moda",
     "Design Gráfico",
     "Artes Visuais",
@@ -111,7 +98,7 @@ const coursesByArea = {
   Engenharia: [],
 };
 
-// ===== PERGUNTAS (10) =====
+// 10 perguntas (2 pts na área principal +1 na secundária)
 const questions = [
   {
     text: "Quando você precisa resolver um problema, o que você faz primeiro?",
@@ -205,14 +192,13 @@ const questions = [
   },
 ];
 
-// ===== STATE =====
+// Estado
 let idx = 0;
-let selectedIdx = null;
-
+let selected = null;
 let points = Object.fromEntries(AREAS.map(a => [a, 0]));
 let primaryHits = Object.fromEntries(AREAS.map(a => [a, 0]));
 
-// ===== UI (IDs precisam existir no seu index.html atual) =====
+// UI
 const qText = document.getElementById("qText");
 const optionsEl = document.getElementById("options");
 const nextBtn = document.getElementById("nextBtn");
@@ -227,17 +213,16 @@ const resultCard = document.getElementById("resultCard");
 
 const leadName = document.getElementById("leadName");
 const leadWhats = document.getElementById("leadWhats");
-const leadEmail = document.getElementById("leadEmail"); // <-- campo de e-mail no seu HTML
+const leadEmail = document.getElementById("leadEmail");
 const leadError = document.getElementById("leadError");
 const leadSubmitBtn = document.getElementById("leadSubmitBtn");
 
-// ===== FUNÇÕES =====
 function renderQuestion() {
-  selectedIdx = null;
+  selected = null;
   nextBtn.disabled = true;
 
   const q = questions[idx];
-  progressPill.textContent = `Pergunta ${idx + 1}/${questions.length}`;
+  progressPill.textContent = `Pergunta ${idx+1}/${questions.length}`;
   qText.textContent = q.text;
 
   optionsEl.innerHTML = "";
@@ -245,14 +230,12 @@ function renderQuestion() {
     const div = document.createElement("div");
     div.className = "opt";
     div.textContent = opt.label;
-
     div.onclick = () => {
-      selectedIdx = i;
+      selected = i;
       nextBtn.disabled = false;
       [...optionsEl.children].forEach(c => c.style.outline = "none");
       div.style.outline = "2px solid #2d74ff";
     };
-
     optionsEl.appendChild(div);
   });
 
@@ -269,7 +252,7 @@ function applyScore(opt) {
 }
 
 function getRankedAreaKeys() {
-  return [...AREAS].sort((a, b) => {
+  return [...AREAS].sort((a,b) => {
     if (points[b] !== points[a]) return points[b] - points[a];
     if (primaryHits[b] !== primaryHits[a]) return primaryHits[b] - primaryHits[a];
     return AREAS.indexOf(a) - AREAS.indexOf(b);
@@ -283,16 +266,33 @@ function buildResultSnapshot() {
     secondArea: areaLabels[ranked[1]] || ranked[1],
     thirdArea: areaLabels[ranked[2]] || ranked[2],
     scores: Object.fromEntries(ranked.map(k => [areaLabels[k] || k, points[k]])),
-    rankedKeys: ranked
   };
 }
 
-function openLeadGate() {
-  quizCard.style.display = "none";
-  resultCard.style.display = "none";
-  leadCard.style.display = "block";
-  leadError.textContent = "";
-  leadSubmitBtn.disabled = false;
+/**
+ * CORREÇÃO DO "Failed to fetch":
+ * - Não manda header application/json (evita preflight/OPTIONS)
+ * - Usa no-cors
+ * - Tenta sendBeacon primeiro
+ */
+function sendLeadToSheets(payload) {
+  const body = JSON.stringify(payload);
+
+  try {
+    if (navigator.sendBeacon) {
+      const ok = navigator.sendBeacon(
+        SHEETS_WEBAPP_URL,
+        new Blob([body], { type: "text/plain;charset=utf-8" })
+      );
+      if (ok) return Promise.resolve(true);
+    }
+  } catch (_) {}
+
+  return fetch(SHEETS_WEBAPP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body
+  }).then(() => true);
 }
 
 function renderResult() {
@@ -308,16 +308,13 @@ function renderResult() {
   document.getElementById("topAreaName").textContent = areaLabels[top] || top;
   document.getElementById("topAreaDesc").textContent = areaDescriptions[top] || "";
 
-  // Se você já trocou por gráfico no HTML, pode remover essa lista depois.
   const scoreList = document.getElementById("scoreList");
-  if (scoreList) {
-    scoreList.innerHTML = "";
-    ranked.forEach(a => {
-      const li = document.createElement("li");
-      li.textContent = `${areaLabels[a] || a}: ${points[a]} ( +2: ${primaryHits[a]} )`;
-      scoreList.appendChild(li);
-    });
-  }
+  scoreList.innerHTML = "";
+  ranked.forEach(a => {
+    const li = document.createElement("li");
+    li.textContent = `${areaLabels[a] || a}: ${points[a]} ( +2: ${primaryHits[a]} )`;
+    scoreList.appendChild(li);
+  });
 
   const recommendedList = document.getElementById("recommendedList");
   recommendedList.innerHTML = "";
@@ -340,52 +337,31 @@ function renderResult() {
   resultCard.style.display = "block";
 }
 
-function finishQuiz() {
-  openLeadGate();
+function openLeadGate() {
+  quizCard.style.display = "none";
+  resultCard.style.display = "none";
+  leadCard.style.display = "block";
+  leadError.textContent = "";
+  leadSubmitBtn.disabled = false;
 }
+
+nextBtn.onclick = () => {
+  const q = questions[idx];
+  const opt = q.options[selected];
+  applyScore(opt);
+
+  idx += 1;
+  if (idx >= questions.length) openLeadGate();
+  else renderQuestion();
+};
 
 function normalizeDigits(v) {
   return String(v || "").replace(/\D/g, "");
 }
-
 function isValidEmail(v) {
   const s = String(v || "").trim();
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
-
-// IMPORTANT: no-cors + sem headers => não dá “Failed to fetch”
-function sendLeadToSheets(payload) {
-  const body = JSON.stringify(payload);
-
-  // 1) Tenta o jeito mais “certo” pra web (não gera preflight e não depende de CORS)
-  try {
-    if (navigator.sendBeacon) {
-      const ok = navigator.sendBeacon(
-        SHEETS_WEBAPP_URL,
-        new Blob([body], { type: "text/plain;charset=utf-8" })
-      );
-      if (ok) return Promise.resolve(true);
-    }
-  } catch (e) {}
-
-  // 2) Fallback: fetch sem headers JSON (sem preflight) e sem ler resposta (CORS)
-  return fetch(SHEETS_WEBAPP_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body
-  }).then(() => true);
-}
-
-// ===== EVENTOS =====
-nextBtn.onclick = () => {
-  const q = questions[idx];
-  const opt = q.options[selectedIdx];
-  applyScore(opt);
-
-  idx += 1;
-  if (idx >= questions.length) finishQuiz();
-  else renderQuestion();
-};
 
 leadSubmitBtn.onclick = async () => {
   leadError.textContent = "";
@@ -393,23 +369,11 @@ leadSubmitBtn.onclick = async () => {
 
   const name = String(leadName.value || "").trim();
   const whats = normalizeDigits(leadWhats.value);
-  const email = String(leadEmail?.value || "").trim();
+  const email = String(leadEmail.value || "").trim();
 
-  if (!name) {
-    leadError.textContent = "Informe seu nome.";
-    leadSubmitBtn.disabled = false;
-    return;
-  }
-  if (whats.length < 10) {
-    leadError.textContent = "Informe seu WhatsApp com DDD (somente números).";
-    leadSubmitBtn.disabled = false;
-    return;
-  }
-  if (!isValidEmail(email)) {
-    leadError.textContent = "Informe um e-mail válido.";
-    leadSubmitBtn.disabled = false;
-    return;
-  }
+  if (!name) { leadError.textContent = "Informe seu nome."; leadSubmitBtn.disabled = false; return; }
+  if (whats.length < 10) { leadError.textContent = "Informe seu WhatsApp com DDD (somente números)."; leadSubmitBtn.disabled = false; return; }
+  if (!isValidEmail(email)) { leadError.textContent = "Informe um e-mail válido."; leadSubmitBtn.disabled = false; return; }
 
   const snap = buildResultSnapshot();
 
@@ -427,18 +391,11 @@ leadSubmitBtn.onclick = async () => {
   };
 
   try {
-    await sendLeadToSheetsNoCors(payload);
-
-    // limpa formulário
-    leadName.value = "";
-    leadWhats.value = "";
-    if (leadEmail) leadEmail.value = "";
-    leadError.textContent = "";
-
-    // mostra resultado
+    // envia e mostra resultado
+    await sendLeadToSheets(payload);
     renderResult();
-  } catch (e) {
-    // aqui só cai se der erro “de rede” mesmo
+  } catch (_) {
+    // só cai aqui se der erro real de rede (offline)
     leadError.textContent = "Não consegui enviar agora. Tente novamente.";
     leadSubmitBtn.disabled = false;
   }
@@ -446,19 +403,19 @@ leadSubmitBtn.onclick = async () => {
 
 function reset() {
   idx = 0;
-  selectedIdx = null;
+  selected = null;
   points = Object.fromEntries(AREAS.map(a => [a, 0]));
   primaryHits = Object.fromEntries(AREAS.map(a => [a, 0]));
+
+  leadName.value = "";
+  leadWhats.value = "";
+  leadEmail.value = "";
+  leadError.textContent = "";
+  leadSubmitBtn.disabled = false;
 
   leadCard.style.display = "none";
   resultCard.style.display = "none";
   quizCard.style.display = "block";
-
-  leadName.value = "";
-  leadWhats.value = "";
-  if (leadEmail) leadEmail.value = "";
-  leadError.textContent = "";
-  leadSubmitBtn.disabled = false;
 
   renderQuestion();
 }

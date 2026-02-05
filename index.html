@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Teste Vocacional - Unifatecie</title>
+  <title>Teste Vocacional</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b0f14;color:#e8eef6}
     .wrap{max-width:860px;margin:0 auto;padding:24px}
@@ -23,17 +23,9 @@
     .grid{display:grid;grid-template-columns:1fr;gap:10px}
     @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
     label{display:block;font-size:13px;color:#a9b6c6;margin:10px 0 6px}
-    input,select{
-      width:100%;box-sizing:border-box;border-radius:12px;border:1px solid #2a3a52;
-      background:#0f1620;color:#e8eef6;padding:12px
-    }
+    input{width:100%;box-sizing:border-box;border-radius:12px;border:1px solid #2a3a52;background:#0f1620;color:#e8eef6;padding:12px}
     .danger{color:#ff8a8a}
     .tiny{font-size:12px;color:#a9b6c6}
-    .legend{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
-    @media(min-width:720px){.legend{grid-template-columns:1fr 1fr}}
-    .lg-item{display:flex;gap:10px;align-items:center}
-    .swatch{width:14px;height:14px;border-radius:4px;border:1px solid #2a3a52}
-    canvas{max-width:100%;height:auto}
   </style>
 </head>
 <body>
@@ -50,7 +42,6 @@
       </div>
     </div>
 
-    <!-- QUIZ -->
     <div class="card" id="quizCard">
       <p class="q" id="qText"></p>
       <div id="options"></div>
@@ -61,7 +52,6 @@
       </div>
     </div>
 
-    <!-- LEAD GATE -->
     <div class="card" id="leadCard" style="display:none">
       <h1>Antes do resultado</h1>
       <div class="muted">Preencha para receber sua recomendação e orientação.</div>
@@ -74,17 +64,19 @@
       <input id="leadWhats" placeholder="Ex.: 18999998888" inputmode="numeric" autocomplete="tel" />
 
       <label for="leadEmail">E-mail</label>
-      <input id="leadEmail" placeholder="Ex.: seuemail@gmail.com" inputmode="email" autocomplete="email" />
+      <input id="leadEmail" placeholder="Ex.: seuemail@dominio.com" autocomplete="email" />
 
       <div class="hr"></div>
       <div class="row">
         <div class="danger" id="leadError"></div>
         <button id="leadSubmitBtn" type="button">Ver meu resultado</button>
       </div>
-      <div class="tiny" style="margin-top:10px">Ao continuar, seus dados serão registrados para contato e orientação.</div>
+
+      <div class="tiny" style="margin-top:10px">
+        Ao continuar, seus dados serão registrados para contato e orientação.
+      </div>
     </div>
 
-    <!-- RESULTADO -->
     <div class="card" id="resultCard" style="display:none">
       <h1>Seu resultado</h1>
       <div class="muted" id="resultMeta"></div>
@@ -98,9 +90,8 @@
         </div>
 
         <div class="card" style="margin:0">
-          <div class="muted">Seu perfil (visual)</div>
-          <canvas id="donut" width="320" height="220" aria-label="Gráfico de perfil"></canvas>
-          <div class="legend" id="legend"></div>
+          <div class="muted">Áreas (pontuação)</div>
+          <ul id="scoreList"></ul>
         </div>
       </div>
 
@@ -123,6 +114,7 @@
     </div>
   </div>
 
-  <script src="./script.js"></script>
+  <!-- IMPORTANTE: só 1 vez -->
+  <script src="script.js"></script>
 </body>
 </html>

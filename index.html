@@ -2,109 +2,129 @@
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <title>Teste Vocacional</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-  <!-- Chart.js (gráfico redondo) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <title>Teste Vocacional - Unifatecie</title>
   <style>
-    body{
-      font-family:system-ui,Arial;
-      margin:0;
-      background:#0b0f14;
-      color:#e8eef6;
-    }
-    .wrap{max-width:900px;margin:30px auto;padding:20px}
-    .card{
-      background:#121a24;
-      border:1px solid #223045;
-      border-radius:14px;
-      padding:18px;
-      margin-bottom:16px;
-    }
-    h1{margin:0 0 8px}
-    .muted{color:#9fb0c5;font-size:14px}
-    .opt{
-      border:1px solid #2a3a52;
-      padding:12px;
-      border-radius:12px;
-      margin:10px 0;
-      cursor:pointer;
-    }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b0f14;color:#e8eef6}
+    .wrap{max-width:860px;margin:0 auto;padding:24px}
+    .card{background:#121a24;border:1px solid #223045;border-radius:14px;padding:18px;margin:12px 0}
+    h1{font-size:20px;margin:0 0 6px}
+    .muted{color:#a9b6c6;font-size:13px;line-height:1.35}
+    .q{font-size:16px;margin:0 0 10px}
+    .opt{display:block;margin:10px 0;padding:12px;border-radius:12px;border:1px solid #2a3a52;background:#0f1620;cursor:pointer}
     .opt:hover{border-color:#3b5475}
-    button{
-      border:0;
-      border-radius:12px;
-      padding:12px 16px;
-      background:#2d74ff;
-      color:#fff;
-      font-weight:600;
-      cursor:pointer;
-    }
-    button:disabled{opacity:.5}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    button{cursor:pointer;border:0;border-radius:12px;padding:12px 14px;background:#2d74ff;color:#fff;font-weight:600}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#0f1620;border:1px solid #2a3a52;color:#a9b6c6;font-size:12px}
+    .hr{height:1px;background:#223045;margin:14px 0}
+    ul{margin:8px 0 0 18px}
+    li{margin:4px 0}
+    .grid{display:grid;grid-template-columns:1fr;gap:10px}
+    @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+    label{display:block;font-size:13px;color:#a9b6c6;margin:10px 0 6px}
     input{
-      width:100%;
-      box-sizing:border-box;
-      border-radius:12px;
-      border:1px solid #2a3a52;
-      background:#0f1620;
-      color:#fff;
-      padding:12px;
-      margin-bottom:10px;
+      width:100%;box-sizing:border-box;border-radius:12px;border:1px solid #2a3a52;
+      background:#0f1620;color:#e8eef6;padding:12px
     }
     .danger{color:#ff8a8a}
-    .grid{display:grid;gap:12px}
-    @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+    .tiny{font-size:12px;color:#a9b6c6}
+    .chartWrap{display:flex;gap:14px;align-items:center}
+    .legend{list-style:none;margin:0;padding:0}
+    .legend li{display:flex;align-items:center;gap:10px;margin:6px 0}
+    .dot{width:10px;height:10px;border-radius:999px;background:#2d74ff;border:1px solid #223045}
+    canvas{max-width:240px;max-height:240px}
   </style>
 </head>
-
 <body>
-<div class="wrap">
+  <div class="wrap">
+    <div class="card">
+      <h1>Teste Vocacional</h1>
+      <div class="muted">
+        10 perguntas • 4 alternativas • Resultado: Área principal + 3 a 5 cursos recomendados + lista completa da área.
+      </div>
+      <div class="hr"></div>
+      <div class="row">
+        <span class="pill" id="progressPill">Pergunta 1/10</span>
+        <button id="restartBtn" type="button">Reiniciar</button>
+      </div>
+    </div>
 
-  <div class="card">
-    <h1>Teste Vocacional</h1>
-    <div class="muted">
-      10 perguntas • 4 alternativas • Resultado visual + cursos recomendados
+    <!-- QUIZ -->
+    <div class="card" id="quizCard">
+      <p class="q" id="qText"></p>
+      <div id="options"></div>
+      <div class="hr"></div>
+      <div class="row">
+        <span class="muted" id="hint"></span>
+        <button id="nextBtn" type="button" disabled>Próxima</button>
+      </div>
+    </div>
+
+    <!-- LEAD GATE -->
+    <div class="card" id="leadCard" style="display:none">
+      <h1>Antes do resultado</h1>
+      <div class="muted">Preencha para receber sua recomendação e orientação.</div>
+      <div class="hr"></div>
+
+      <label for="leadName">Seu nome</label>
+      <input id="leadName" placeholder="Ex.: Maria Silva" autocomplete="name" />
+
+      <label for="leadWhats">WhatsApp (com DDD)</label>
+      <input id="leadWhats" placeholder="Ex.: 18999998888" inputmode="numeric" autocomplete="tel" />
+
+      <label for="leadEmail">E-mail</label>
+      <input id="leadEmail" placeholder="Ex.: voce@gmail.com" autocomplete="email" />
+
+      <div class="hr"></div>
+      <div class="row">
+        <div class="danger" id="leadError"></div>
+        <button id="leadSubmitBtn" type="button">Ver meu resultado</button>
+      </div>
+      <div class="tiny">Ao continuar, seus dados serão registrados para contato e orientação.</div>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="card" id="resultCard" style="display:none">
+      <h1>Seu resultado</h1>
+      <div class="muted" id="resultMeta"></div>
+      <div class="hr"></div>
+
+      <div class="grid">
+        <div class="card" style="margin:0">
+          <div class="muted">Área principal</div>
+          <div style="font-size:18px;font-weight:700;margin-top:6px" id="topAreaName"></div>
+          <div class="muted" style="margin-top:6px" id="topAreaDesc"></div>
+        </div>
+
+        <div class="card" style="margin:0">
+          <div class="muted">Seu perfil (visual)</div>
+          <div class="chartWrap" style="margin-top:10px">
+            <canvas id="areaChart" width="240" height="240"></canvas>
+            <ul class="legend" id="chartLegend"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="card" style="margin:0">
+        <div class="muted">Cursos recomendados (3 a 5)</div>
+        <ul id="recommendedList"></ul>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="card" style="margin:0">
+        <div class="muted">Todos os cursos da área</div>
+        <ul id="allCoursesList"></ul>
+      </div>
+
+      <div class="hr"></div>
+      <button id="restartBtn2" type="button">Fazer novamente</button>
     </div>
   </div>
 
-  <!-- QUIZ -->
-  <div class="card" id="quizCard">
-    <h3 id="qText"></h3>
-    <div id="options"></div>
-    <button id="nextBtn" disabled>Próxima</button>
-  </div>
-
-  <!-- LEAD -->
-  <div class="card" id="leadCard" style="display:none">
-    <h3>Antes do resultado</h3>
-    <input id="leadName" placeholder="Seu nome">
-    <input id="leadWhats" placeholder="WhatsApp com DDD">
-    <input id="leadEmail" placeholder="E-mail">
-    <div class="danger" id="leadError"></div>
-    <button id="leadSubmitBtn">Ver meu resultado</button>
-  </div>
-
-  <!-- RESULTADO -->
-  <div class="card" id="resultCard" style="display:none">
-    <h2 id="topAreaName"></h2>
-    <p class="muted" id="topAreaDesc"></p>
-
-    <div class="grid">
-      <div class="card">
-        <h4>Seu perfil (visual)</h4>
-        <canvas id="areaChart"></canvas>
-      </div>
-      <div class="card">
-        <h4>Cursos recomendados</h4>
-        <ul id="courseList"></ul>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>

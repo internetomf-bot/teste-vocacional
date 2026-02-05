@@ -1,6 +1,6 @@
 // ===== CONFIG =====
 const SHEETS_WEBAPP_URL =
-  "https://script.google.com/macros/s/AKfycby9E-kBMtv1ozeP5AwuE_BKupfZyJ17xWidRXQx7uL0idfQ0xK_So97WL6PDS8ENcQP/exec";
+  "https://script.google.com/macros/s/AKfycbxanP6vQqk8TLNIfUmTVV9jGEl-BWGzpmmTQUtJuePwMBq5W5-MeAuAr9vKjNJqJVtoIQ/exec";
 
 // ===== ÁREAS =====
 const AREAS = [

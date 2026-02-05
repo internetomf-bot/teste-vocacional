@@ -1,7 +1,11 @@
+// ============================
+// CONFIG
+// ============================
+
 /** URL do seu Apps Script (Web App) */
 const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby9E-kBMtv1ozeP5AwuE_BKupfZyJ17xWidRXQx7uL0idfQ0xK_So97WL6PDS8ENcQP/exec";
 
-/** Áreas */
+/** Áreas (IDs) */
 const AREAS = [
   "TecnologiaExatas",
   "Saude",
@@ -12,6 +16,7 @@ const AREAS = [
   "Engenharia"
 ];
 
+/** Nomes para exibição */
 const areaLabels = {
   TecnologiaExatas: "Tecnologia & Exatas",
   Saude: "Saúde",
@@ -22,10 +27,11 @@ const areaLabels = {
   Engenharia: "Engenharia & Arquitetura",
 };
 
+/** Descrições curtas */
 const areaDescriptions = {
   TecnologiaExatas: "Perfil analítico, lógica, sistemas, dados e tecnologia.",
   Saude: "Vocação para cuidado, bem-estar, atuação comunitária e áreas afins.",
-  Educacao: "Interesse em ensinar, formar pessoas e atuar com educação.",
+  Educacao: "Interesse em ensinar, formar pessoas, educação, inclusão e desenvolvimento humano.",
   Gestao: "Foco em negócios, organização, processos, liderança e resultados.",
   Comunicacao: "Criatividade, comunicação, design, mídia e produção de conteúdo.",
   Seguranca: "Interesse por segurança, perícia, normas e atuação na área pública/privada.",
@@ -108,11 +114,11 @@ const coursesByArea = {
     "Segurança do Trabalho",
   ],
   Engenharia: [
-    // Pode preencher depois
+    // preencha quando quiser
   ],
 };
 
-/** 10 perguntas */
+/** Perguntas (10) */
 const questions = [
   {
     text: "Quando você precisa resolver um problema, o que você faz primeiro?",
@@ -206,13 +212,20 @@ const questions = [
   },
 ];
 
-/** Estado */
+// ============================
+// STATE
+// ============================
+
 let idx = 0;
 let selected = null;
+
 let points = Object.fromEntries(AREAS.map(a => [a, 0]));
 let primaryHits = Object.fromEntries(AREAS.map(a => [a, 0]));
 
-/** UI */
+// ============================
+// UI HOOKS
+// ============================
+
 const qText = document.getElementById("qText");
 const optionsEl = document.getElementById("options");
 const nextBtn = document.getElementById("nextBtn");
@@ -231,6 +244,10 @@ const leadEmail = document.getElementById("leadEmail");
 const leadError = document.getElementById("leadError");
 const leadSubmitBtn = document.getElementById("leadSubmitBtn");
 
+// ============================
+// QUIZ LOGIC
+// ============================
+
 function renderQuestion() {
   selected = null;
   nextBtn.disabled = true;
@@ -244,12 +261,15 @@ function renderQuestion() {
     const div = document.createElement("div");
     div.className = "opt";
     div.textContent = opt.label;
+
     div.onclick = () => {
       selected = i;
       nextBtn.disabled = false;
+
       [...optionsEl.children].forEach(c => c.style.outline = "none");
       div.style.outline = "2px solid #2d74ff";
     };
+
     optionsEl.appendChild(div);
   });
 
@@ -273,93 +293,125 @@ function getRankedAreaKeys() {
   });
 }
 
-function openLeadGate() {
-  quizCard.style.display = "none";
-  resultCard.style.display = "none";
-  leadCard.style.display = "block";
-  leadError.textContent = "";
-  leadSubmitBtn.disabled = false;
+function buildResultSnapshot() {
+  const ranked = getRankedAreaKeys();
+  return {
+    topAreaKey: ranked[0],
+    topArea: areaLabels[ranked[0]] || ranked[0],
+    secondArea: areaLabels[ranked[1]] || ranked[1],
+    thirdArea: areaLabels[ranked[2]] || ranked[2],
+    scores: Object.fromEntries(ranked.map(k => [areaLabels[k] || k, points[k]])),
+    rankedKeys: ranked
+  };
 }
+
+// ============================
+// DONUT CHART (Canvas)
+// ============================
+
+const DONUT_COLORS = ["#2d74ff", "#22c55e", "#f97316", "#a855f7", "#eab308"];
+
+function drawDonut(canvasId, labels, values) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext("2d");
+
+  const total = values.reduce((a,b) => a + b, 0) || 1;
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+
+  const outerR = Math.min(cx, cy) - 2;
+  const innerR = outerR * 0.62;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let start = -Math.PI / 2;
+  values.forEach((v, i) => {
+    const frac = v / total;
+    const end = start + frac * Math.PI * 2;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, outerR, start, end);
+    ctx.closePath();
+    ctx.fillStyle = DONUT_COLORS[i % DONUT_COLORS.length];
+    ctx.fill();
+
+    start = end;
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.fillStyle = "#121a24";
+  ctx.fill();
+
+  const topLabel = labels[0] || "";
+  ctx.fillStyle = "#e8eef6";
+  ctx.font = "600 12px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const parts = topLabel.split(" ");
+  let line1 = topLabel;
+  let line2 = "";
+  if (topLabel.length > 18 && parts.length > 2) {
+    const mid = Math.ceil(parts.length / 2);
+    line1 = parts.slice(0, mid).join(" ");
+    line2 = parts.slice(mid).join(" ");
+  }
+  ctx.fillText(line1, cx, cy - (line2 ? 7 : 0));
+  if (line2) ctx.fillText(line2, cx, cy + 9);
+}
+
+function renderDonutLegend(labels, values) {
+  const ul = document.getElementById("donutLegend");
+  ul.innerHTML = "";
+  const total = values.reduce((a,b)=>a+b,0) || 1;
+
+  labels.forEach((lab, i) => {
+    const li = document.createElement("li");
+    const sw = document.createElement("span");
+    sw.className = "sw";
+    sw.style.background = DONUT_COLORS[i % DONUT_COLORS.length];
+
+    const pct = Math.round((values[i] / total) * 100);
+    const txt = document.createElement("span");
+    txt.textContent = `${lab} • ${pct}%`;
+
+    li.appendChild(sw);
+    li.appendChild(txt);
+    ul.appendChild(li);
+  });
+}
+
+// ============================
+// SHEETS SEND
+// ============================
 
 function normalizeDigits(v) {
   return String(v || "").replace(/\D/g, "");
 }
 
-/** ENVIO SEM "FAILED TO FETCH":
- * - tenta sendBeacon
- * - se não der, usa fetch no-cors (não dá erro no browser)
- */
-function sendLead(payload) {
-  const body = JSON.stringify(payload);
+function isValidEmail(email) {
+  const v = String(email || "").trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
 
-  if (navigator.sendBeacon) {
-    try {
-      const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
-      const ok = navigator.sendBeacon(SHEETS_WEBAPP_URL, blob);
-      return ok;
-    } catch (e) {}
-  }
-
-  // fallback
-  fetch(SHEETS_WEBAPP_URL, {
+async function sendLeadToSheets(payload) {
+  const res = await fetch(SHEETS_WEBAPP_URL, {
     method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body
-  });
-  return true;
-}
-
-/** Gráfico donut (sem libs) */
-function drawDonut(canvasId, labels, values) {
-  const canvas = document.getElementById(canvasId);
-  const ctx = canvas.getContext("2d");
-  const total = values.reduce((a,b)=>a+b,0) || 1;
-
-  const colors = ["#2d74ff","#45c4b0","#f5b942","#ff6b6b","#9b59b6","#16a085","#e67e22"];
-  const cx = canvas.width/2;
-  const cy = canvas.height/2;
-  const r = Math.min(cx,cy) - 6;
-  const inner = r * 0.62;
-
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  let start = -Math.PI/2;
-  values.forEach((v, i) => {
-    const angle = (v/total) * Math.PI*2;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,start,start+angle);
-    ctx.closePath();
-    ctx.fillStyle = colors[i % colors.length];
-    ctx.fill();
-    start += angle;
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
 
-  // furo
-  ctx.beginPath();
-  ctx.arc(cx,cy,inner,0,Math.PI*2);
-  ctx.fillStyle = "#121a24";
-  ctx.fill();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+  if (!data || data.ok !== true) throw new Error(data?.error || "Falha ao salvar no Google Sheets.");
 }
 
-/** Legenda */
-function renderLegend(labels) {
-  const colors = ["#2d74ff","#45c4b0","#f5b942","#ff6b6b","#9b59b6","#16a085","#e67e22"];
-  const legend = document.getElementById("chartLegend");
-  legend.innerHTML = "";
-  labels.forEach((t, i) => {
-    const li = document.createElement("li");
-    const dot = document.createElement("span");
-    dot.className = "dot";
-    dot.style.background = colors[i % colors.length];
-    const txt = document.createElement("span");
-    txt.textContent = t;
-    li.appendChild(dot);
-    li.appendChild(txt);
-    legend.appendChild(li);
-  });
-}
+// ============================
+// RESULT RENDER
+// ============================
 
 function renderResult() {
   const ranked = getRankedAreaKeys();
@@ -369,7 +421,7 @@ function renderResult() {
   const recommended = all.slice(0, Math.min(5, Math.max(3, all.length)));
 
   document.getElementById("resultMeta").textContent =
-    "Pontuação calculada por área (desempate: mais respostas como +2).";
+    "Resultado visual por perfil (as 5 áreas mais fortes).";
 
   document.getElementById("topAreaName").textContent = areaLabels[top] || top;
   document.getElementById("topAreaDesc").textContent = areaDescriptions[top] || "";
@@ -390,17 +442,29 @@ function renderResult() {
     allCoursesList.appendChild(li);
   });
 
-  // gráfico com top 5
   const top5 = ranked.slice(0, 5);
   const labels = top5.map(k => areaLabels[k] || k);
-  const values = top5.map(k => points[k]);
+  const values = top5.map(k => Math.max(0, points[k]));
 
-  drawDonut("areaChart", labels, values);
-  renderLegend(labels);
+  drawDonut("donut", labels, values);
+  renderDonutLegend(labels, values);
 
   leadCard.style.display = "none";
   quizCard.style.display = "none";
   resultCard.style.display = "block";
+}
+
+// ============================
+// FLOW
+// ============================
+
+function openLeadGate() {
+  quizCard.style.display = "none";
+  resultCard.style.display = "none";
+  leadCard.style.display = "block";
+
+  leadError.textContent = "";
+  leadSubmitBtn.disabled = false;
 }
 
 function finishQuiz() {
@@ -417,41 +481,58 @@ nextBtn.onclick = () => {
   else renderQuestion();
 };
 
-leadSubmitBtn.onclick = () => {
+leadSubmitBtn.onclick = async () => {
   leadError.textContent = "";
+  leadSubmitBtn.disabled = true;
 
   const name = String(leadName.value || "").trim();
   const whats = normalizeDigits(leadWhats.value);
   const email = String(leadEmail.value || "").trim();
 
-  if (!name) { leadError.textContent = "Informe seu nome."; return; }
-  if (whats.length < 10) { leadError.textContent = "Informe seu WhatsApp com DDD (somente números)."; return; }
-  if (!email || !email.includes("@")) { leadError.textContent = "Informe um e-mail válido."; return; }
+  if (!name) {
+    leadError.textContent = "Informe seu nome.";
+    leadSubmitBtn.disabled = false;
+    return;
+  }
+  if (whats.length < 10) {
+    leadError.textContent = "Informe seu WhatsApp com DDD (somente números).";
+    leadSubmitBtn.disabled = false;
+    return;
+  }
+  if (!isValidEmail(email)) {
+    leadError.textContent = "Informe um e-mail válido.";
+    leadSubmitBtn.disabled = false;
+    return;
+  }
 
-  const ranked = getRankedAreaKeys();
+  const snap = buildResultSnapshot();
+
   const payload = {
     createdAt: new Date().toISOString(),
     name,
     whatsapp: whats,
     email,
-    topArea: areaLabels[ranked[0]] || ranked[0],
-    secondArea: areaLabels[ranked[1]] || ranked[1],
-    thirdArea: areaLabels[ranked[2]] || ranked[2],
-    scores: Object.fromEntries(ranked.map(k => [areaLabels[k] || k, points[k]])),
+    topArea: snap.topArea,
+    secondArea: snap.secondArea,
+    thirdArea: snap.thirdArea,
+    scoresJson: JSON.stringify(snap.scores),
     userAgent: navigator.userAgent || "",
     pageUrl: location.href || "",
   };
 
-  // envia (sem quebrar o resultado)
-  sendLead(payload);
+  try {
+    await sendLeadToSheets(payload);
 
-  // limpa inputs e mostra resultado
-  leadName.value = "";
-  leadWhats.value = "";
-  leadEmail.value = "";
-  leadError.textContent = "";
+    leadName.value = "";
+    leadWhats.value = "";
+    leadEmail.value = "";
+    leadError.textContent = "";
 
-  renderResult();
+    renderResult();
+  } catch (e) {
+    leadError.textContent = String(e?.message || e || "Não consegui enviar agora. Tente novamente.");
+    leadSubmitBtn.disabled = false;
+  }
 };
 
 function reset() {

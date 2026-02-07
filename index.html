@@ -3,147 +3,129 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Teste Vocacional</title>
+  <title>Teste Vocacional - Unifatecie</title>
   <style>
     :root{
-      --bg:#0b0f14;
-      --card:#0f1724;
-      --card2:#101b2a;
-      --line:#1f2d44;
-      --text:#e6eefc;
-      --muted:#9fb2d6;
-      --btn:#2d74ff;
-      --btn2:#1f5fe0;
-      --danger:#ff5a5a;
+      --bg:#0b0f14; --card:#121a24; --card2:#0f1620; --bd:#223045; --bd2:#2a3a52;
+      --txt:#e8eef6; --muted:#a9b6c6; --blue:#2d74ff; --danger:#ff8a8a;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-    .wrap{max-width:980px;margin:32px auto;padding:0 16px}
-    .card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;margin-bottom:16px}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:16px}
-    h1{margin:0;font-size:28px;letter-spacing:.2px}
-    .sub{margin:6px 0 0;color:var(--muted);font-size:13px}
-    .row{display:flex;gap:16px;flex-wrap:wrap}
-    .col{flex:1;min-width:280px}
-    .hr{height:1px;background:var(--line);margin:14px 0}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-size:12px}
-    button{border:0;border-radius:12px;background:var(--btn);color:#fff;padding:10px 14px;font-weight:600;cursor:pointer}
-    button:hover{background:var(--btn2)}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:var(--txt)}
+    .wrap{max-width:860px;margin:0 auto;padding:24px}
+    .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin:12px 0}
+    h1{font-size:20px;margin:0 0 6px}
+    .muted{color:var(--muted);font-size:13px;line-height:1.35}
+    .q{font-size:16px;margin:0 0 10px}
+    .opt{display:block;margin:10px 0;padding:12px;border-radius:12px;border:1px solid var(--bd2);background:var(--card2);cursor:pointer}
+    .opt:hover{border-color:#3b5475}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    button{cursor:pointer;border:0;border-radius:12px;padding:12px 14px;background:var(--blue);color:#fff;font-weight:600}
     button:disabled{opacity:.5;cursor:not-allowed}
-    .optBtn{
-      width:100%;
-      text-align:left;
-      background:transparent;
-      border:1px solid var(--line);
-      color:var(--text);
-      padding:12px 14px;
-      border-radius:12px;
-      margin:8px 0;
-      font-weight:600;
-    }
-    .optBtn:hover{background:rgba(255,255,255,.03)}
-    .optBtn.active{outline:2px solid var(--btn);border-color:transparent}
-    label{display:block;margin:12px 0 6px;color:var(--muted);font-size:13px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--bd2);color:var(--muted);font-size:12px}
+    .hr{height:1px;background:var(--bd);margin:14px 0}
+    ul{margin:8px 0 0 18px}
+    li{margin:4px 0}
+    .grid{display:grid;grid-template-columns:1fr;gap:10px}
+    @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+    label{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px}
     input{
-      width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#0c1422;
-      color:var(--text);
-      outline:none;
+      width:100%;box-sizing:border-box;border-radius:12px;border:1px solid var(--bd2);
+      background:var(--card2);color:var(--txt);padding:12px
     }
-    .err{color:var(--danger);font-weight:700;margin-top:10px}
-    .muted{color:var(--muted);font-size:12px;margin-top:8px}
-    ul{margin:10px 0 0;padding-left:18px}
-    li{margin:6px 0}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    @media (max-width:860px){.grid2{grid-template-columns:1fr}}
-    .chartBox{display:flex;align-items:center;justify-content:center;height:260px}
+    .danger{color:var(--danger)}
+    .tiny{font-size:12px;color:var(--muted)}
+    .legend{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .legendItem{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--txt)}
+    .swatch{width:12px;height:12px;border-radius:4px;border:1px solid var(--bd2);flex:0 0 auto}
     canvas{max-width:100%;height:auto}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <div class="top">
-        <div>
-          <h1>Teste Vocacional</h1>
-          <div class="sub">10 perguntas • 4 alternativas • Resultado: Área principal + 3 a 5 cursos recomendados + lista completa da área.</div>
-        </div>
-        <button id="btnReset" type="button">Reiniciar</button>
+      <h1>Teste Vocacional</h1>
+      <div class="muted">
+        10 perguntas • 4 alternativas • Resultado: Área principal + 3 a 5 cursos recomendados + lista completa da área.
       </div>
       <div class="hr"></div>
-      <span class="pill" id="qCount">Pergunta 1/10</span>
+      <div class="row">
+        <span class="pill" id="progressPill">Pergunta 1/10</span>
+        <button id="restartBtn" type="button">Reiniciar</button>
+      </div>
     </div>
 
     <!-- QUIZ -->
     <div class="card" id="quizCard">
-      <h2 id="qTitle" style="margin:0 0 8px"></h2>
-      <div id="optionsWrap"></div>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px">
-        <button id="btnNext" type="button" disabled>Próxima</button>
+      <p class="q" id="qText"></p>
+      <div id="options"></div>
+      <div class="hr"></div>
+      <div class="row">
+        <span class="muted" id="hint"></span>
+        <button id="nextBtn" type="button" disabled>Próxima</button>
       </div>
     </div>
 
-    <!-- LEAD -->
+    <!-- LEAD GATE -->
     <div class="card" id="leadCard" style="display:none">
-      <h2 style="margin:0">Antes do resultado</h2>
-      <div class="sub">Preencha para receber sua recomendação e orientação.</div>
+      <h1>Antes do resultado</h1>
+      <div class="muted">Preencha para receber sua recomendação e orientação.</div>
       <div class="hr"></div>
 
-      <label>Seu nome</label>
-      <input id="inName" placeholder="Ex: João Silva" />
+      <label for="leadName">Seu nome</label>
+      <input id="leadName" placeholder="Ex.: Maria Silva" autocomplete="name" />
 
-      <label>WhatsApp (com DDD)</label>
-      <input id="inWhats" placeholder="Ex: 189991500284" inputmode="numeric" />
+      <label for="leadWhats">WhatsApp (com DDD)</label>
+      <input id="leadWhats" placeholder="Ex.: 18999998888" inputmode="numeric" autocomplete="tel" />
 
-      <label>E-mail</label>
-      <input id="inEmail" placeholder="Ex: voce@email.com" inputmode="email" />
+      <label for="leadEmail">E-mail</label>
+      <input id="leadEmail" placeholder="Ex.: seuemail@gmail.com" inputmode="email" autocomplete="email" />
 
-      <div class="err" id="leadErr"></div>
-
-      <div style="display:flex;justify-content:flex-end;margin-top:10px">
-        <button id="btnSend" type="button">Ver meu resultado</button>
+      <div class="hr"></div>
+      <div class="row">
+        <div class="danger" id="leadError"></div>
+        <button id="leadSubmitBtn" type="button">Ver meu resultado</button>
       </div>
-
-      <div class="muted">Ao continuar, seus dados serão registrados para contato e orientação.</div>
+      <div class="tiny" style="margin-top:8px">Ao continuar, seus dados serão registrados para contato e orientação.</div>
     </div>
 
     <!-- RESULTADO -->
     <div class="card" id="resultCard" style="display:none">
-      <h2 style="margin:0">Seu resultado</h2>
-      <div class="sub">Pontuação calculada por área (desempate: mais respostas como +2).</div>
+      <h1>Seu resultado</h1>
+      <div class="muted" id="resultMeta"></div>
       <div class="hr"></div>
 
-      <div class="grid2">
+      <div class="grid">
         <div class="card" style="margin:0">
-          <div class="sub">Área principal</div>
-          <div id="outArea" style="font-size:20px;font-weight:800;margin-top:6px"></div>
-          <div id="outDesc" class="sub" style="margin-top:10px"></div>
+          <div class="muted">Área principal</div>
+          <div style="font-size:18px;font-weight:700;margin-top:6px" id="topAreaName"></div>
+          <div class="muted" style="margin-top:6px" id="topAreaDesc"></div>
         </div>
 
         <div class="card" style="margin:0">
-          <div class="sub">Seu perfil (visual)</div>
-          <div class="chartBox">
-            <canvas id="areaChart" width="320" height="320"></canvas>
-          </div>
+          <div class="muted">Seu perfil (visual)</div>
+          <canvas id="areaChart" width="260" height="260" aria-label="Gráfico de perfil por área"></canvas>
+          <div class="legend" id="areaLegend"></div>
         </div>
       </div>
 
-      <div class="card" style="margin-top:16px">
-        <div class="sub">Cursos recomendados (3 a 5)</div>
-        <ul id="outCourses"></ul>
+      <div class="hr"></div>
+
+      <div class="card" style="margin:0">
+        <div class="muted">Cursos recomendados (3 a 5)</div>
+        <ul id="recommendedList"></ul>
       </div>
 
-      <div class="card" style="margin-top:16px">
-        <div class="sub">Lista completa da área (ordem de compatibilidade)</div>
-        <ul id="outAllAreas"></ul>
+      <div class="hr"></div>
+
+      <div class="card" style="margin:0">
+        <div class="muted">Todos os cursos da área</div>
+        <ul id="allCoursesList"></ul>
       </div>
+
+      <div class="hr"></div>
+      <button id="restartBtn2" type="button">Fazer novamente</button>
     </div>
   </div>
 
-  <!-- IMPORTANTE: só 1 inclusão -->
-  <script src="./script.js"></script>
+  <script src="./script.js" defer></script>
 </body>
 </html>
